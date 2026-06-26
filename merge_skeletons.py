@@ -475,7 +475,13 @@ class MergeUI(QWidget):
         self.spin_insert.setValue(0)
         self.spin_insert.setFixedWidth(80)
         self.spin_insert.setEnabled(False)
-        hint2 = QLabel("Leave unchecked to append at end (top of draw stack).  0 = very bottom.")
+        hint2 = QLabel(
+            "Spine's draw order is bottom-to-top: slot 0 is drawn first (behind everything), "
+            "the last slot is drawn on top. Leave unchecked to append the source skeleton on top "
+            "of the base. Check and enter an index to tuck the source behind specific base layers — "
+            "e.g. index 3 inserts it after base slot 3, so it renders above slots 0-2 but below the rest."
+        )
+        hint2.setWordWrap(True)
         hint2.setStyleSheet("color: #6c7086; font-size: 11px;")
         order_layout.addWidget(self.chk_custom_insert)
         order_layout.addWidget(self.spin_insert)
