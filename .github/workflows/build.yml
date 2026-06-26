@@ -22,7 +22,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build .exe
-        run: pyinstaller merge_skeletons.spec
+        run: pyinstaller merge_skeletons_win.spec --noconfirm
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -45,8 +45,8 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build .app
-        run: pyinstaller merge_skeletons.spec
+      - name: Build .app (onedir)
+        run: pyinstaller merge_skeletons_mac.spec --noconfirm
 
       - name: Zip .app bundle
         run: |
