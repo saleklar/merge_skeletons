@@ -450,7 +450,13 @@ class MergeUI(QWidget):
         self.prefix_edit = QLineEdit()
         self.prefix_edit.setPlaceholderText("e.g.  h1_   or   ab_")
         self.prefix_edit.setMaximumWidth(160)
-        hint = QLabel("All bones, slots, constraints & animation refs in the source get this prefix.")
+        hint = QLabel(
+            "Spine requires every bone, slot and constraint name to be unique. "
+            "When merging two skeletons, a prefix prevents name collisions — "
+            "e.g. prefix \"h1_\" turns bone \"arm\" into \"h1_arm\" so it never "
+            "clashes with the same-named bone in the base skeleton."
+        )
+        hint.setWordWrap(True)
         hint.setStyleSheet("color: #6c7086; font-size: 11px;")
         prefix_layout.addWidget(lbl_p)
         prefix_layout.addWidget(self.prefix_edit)
@@ -500,7 +506,7 @@ class MergeUI(QWidget):
         # Wire
         self.row_source.edit.textChanged.connect(self._auto_output)
 
-    def _auto_output(self, text:
+    def _auto_output(self, text):
         if not text:
             return
         base, ext = os.path.splitext(text)
