@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+*.spec
+*.spec.bak
+.idea/
+.vscode/
+*.egg-info/
+
+# large sample data — not part of the tool
+*.json
+*.spine
+*.bak
