@@ -316,7 +316,7 @@ def run_prefix_only(source_path, output_path, prefix):
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QFileDialog,
-    QRadioButton, QButtonGroup, QGroupBox, QTextEdit,
+    QGroupBox, QTextEdit,
     QFrame, QSpinBox, QCheckBox, QSizePolicy
 )
 from PySide6.QtCore import Qt
@@ -368,7 +368,6 @@ QPushButton#run_btn {
     border-radius: 6px;
 }
 QPushButton#run_btn:hover { background: #b4befe; }
-QRadioButton { spacing: 6px; }
 QTextEdit {
     background: #181825;
     border: 1px solid #45475a;
@@ -430,24 +429,11 @@ class MergeUI(QWidget):
         root.setSpacing(10)
         root.setContentsMargins(16, 16, 16, 16)
 
-        # ── Mode ──────────────────────────────────────────────────
-        mode_box = QGroupBox("Mode")
-        mode_layout = QHBoxLayout(mode_box)
-        self.radio_prefix = QRadioButton("Prefix only  (prepare JSON for Spine Editor import)")
-        self.radio_merge  = QRadioButton("Full merge  (combine two JSONs into one file)")
-        self.radio_merge.setChecked(True)
-        self._mode_grp = QButtonGroup()
-        self._mode_grp.addButton(self.radio_prefix)
-        self._mode_grp.addButton(self.radio_merge)
-        mode_layout.addWidget(self.radio_prefix)
-        mode_layout.addWidget(self.radio_merge)
-        root.addWidget(mode_box)
-
         # ── Files ─────────────────────────────────────────────────
         files_box = QGroupBox("Files")
         files_layout = QVBoxLayout(files_box)
         files_layout.setSpacing(6)
-        self.row_base   = PathRow("Base JSON:",   "Target/base skeleton  (merge mode only)")
+        self.row_base   = PathRow("Base JSON:",   "Target/base skeleton")
         self.row_source = PathRow("Source JSON:", "Skeleton to prefix / import")
         self.row_output = PathRow("Output JSON:", "Where to save result", save=True)
         files_layout.addWidget(self.row_base)
@@ -474,7 +460,7 @@ class MergeUI(QWidget):
         root.addWidget(prefix_box)
 
         # ── Layer order ───────────────────────────────────────────
-        order_box = QGroupBox("Slot / Layer Insert Position  (merge mode only)")
+        order_box = QGroupBox("Slot / Layer Insert Position")
         order_layout = QHBoxLayout(order_box)
         self.chk_custom_insert = QCheckBox("Insert at slot index:")
         self.chk_custom_insert.setChecked(False)
@@ -512,23 +498,14 @@ class MergeUI(QWidget):
         root.addWidget(self.log)
 
         # Wire
-        self.radio_prefix.toggled.connect(self._on_mode)
-        self.radio_merge.toggled.connect(self._on_mode)
         self.row_source.edit.textChanged.connect(self._auto_output)
-        self._on_mode()
 
-    def _on_mode(self):
-        is_merge = self.radio_merge.isChecked()
-        self.row_base.setEnabled(is_merge)
-        self.chk_custom_insert.setEnabled(is_merge)
-
-    def _auto_output(self, text):
+    def _auto_output(self, text:
         if not text:
             return
         base, ext = os.path.splitext(text)
-        suffix = "_prefixed" if self.radio_prefix.isChecked() else "_merged"
         if not self.row_output.path():
-            self.row_output.set_path(base + suffix + ext)
+            self.row_output.set_path(base + '_merged' + ext)
 
     def _log(self, msg, color="#a6e3a1"):
         self.log.append(f'<span style="color:{color};">{msg.replace(chr(10), "<br>")}</span>')
@@ -547,18 +524,14 @@ class MergeUI(QWidget):
             self._log("ERROR: Output path is empty.", "#f38ba8"); return
 
         try:
-            if self.radio_prefix.isChecked():
-                stats = run_prefix_only(source, output, prefix)
-                self._log(f"Prefix only — done.")
-            else:
-                base = self.row_base.path()
-                if not base or not os.path.isfile(base):
-                    self._log("ERROR: Base JSON not found.", "#f38ba8"); return
-                insert_idx = self.spin_insert.value() if self.chk_custom_insert.isChecked() else None
-                stats = run_merge(base, source, output, prefix, insert_idx)
-                self._log(f"Full merge — done.")
-                for w in stats.get('warnings', []):
-                    self._log(f"  CLEANED: {w}", "#fab387")
+            base = self.row_base.path()
+            if not base or not os.path.isfile(base):
+                self._log("ERROR: Base JSON not found.", "#f38ba8"); return
+            insert_idx = self.spin_insert.value() if self.chk_custom_insert.isChecked() else None
+            stats = run_merge(base, source, output, prefix, insert_idx)
+            self._log("Full merge — done.")
+            for w in stats.get('warnings', []):
+                self._log(f"  CLEANED: {w}", "#fab387")
 
             self._log(
                 f"  Bones: {stats['bones']}   Slots: {stats['slots']}   "
